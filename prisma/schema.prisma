@@ -13,3 +13,69 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  userId      String  @id @default(uuid())
+  username    String  @unique
+  fullname    String
+  email       String  @unique
+  nationality String?
+
+  favorite Favorite[]
+
+  @@map("users")
+}
+
+model School {
+  schoolId             Int     @id @default(autoincrement())
+  schoolName           String
+  state                String
+  city                 String
+  institutionalControl String
+  rank                 Int
+  acceptanceRate       Decimal @db.Decimal(8, 2)
+  schoolWebsite        String
+
+  criteria     SchoolCriteria[]
+  scholarships Scholarships[]
+  favorites    Favorite[]
+  // @@index([acceptanceRate])
+
+  @@index([state, city])
+  @@index([rank])
+  @@index([institutionalControl])
+  @@map("schools")
+}
+
+model SchoolCriteria {
+  criteriaId        Int     @id @default(autoincrement())
+  graduateLevel     String  @default("Masters/PhD")
+  offerScholarships Boolean @default(false)
+  requiresAppFee    Boolean @default(true)
+  requiresGre       Boolean @default(false)
+
+  Schools  School @relation(fields: [schoolId], references: [schoolId])
+  schoolId Int
+
+  @@index([graduateLevel])
+}
+
+model Scholarships {
+  schpolarshipId Int    @id @default(autoincrement())
+  name           String
+  description    String
+  program        String
+  degreeLevel    String
+
+  schools  School @relation(fields: [schoolId], references: [schoolId])
+  schoolId Int
+}
+
+model Favorite {
+  id     Int    @id @default(autoincrement())
+  user   User   @relation(fields: [userId], references: [userId])
+  userId String
+
+  school   School @relation(fields: [schoolId], references: [schoolId])
+  schoolId Int
+}
